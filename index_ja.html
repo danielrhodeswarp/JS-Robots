@@ -1,0 +1,767 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Style-Type" content="text/css"/>
+<meta http-equiv="Content-Language" content="ja"/>
+<meta http-equiv="imagetoolbar" content="no"/>
+<meta name="description" content="JavaScript ロボットで、死ぬまで戦ってください! JavaScript のプログラミングゲームです。"/>
+<meta name="keywords" content="ロボッツ, CROBOTS, ジャバスクリプト, ジャヴァスクリプト, javascript, js, プログラミング, ゲーム"/>
+<meta name="author" content="Warp Asylum"/>
+<meta name="copyright" content="Copyright &copy; 2009 ~ 2011 Warp Asylum Ltd (UK)"/>
+<title>JSロボッツ</title>
+<link type="text/css" href="css/jsrobots.css" rel="stylesheet" media="all"/>
+<!--<script type="text/javascript" src="http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js"></script>-->
+<script type="text/javascript" src="js/3rd/jquery-1.3.2.min.js"></script>
+<script type="text/javascript" src="js/scoring.js"></script>
+<script type="text/javascript" src="js/interface.js"></script>
+<script type="text/javascript" src="js/maths.js"></script>
+<script type="text/javascript" src="js/robot.js"></script>
+<script type="text/javascript" src="js/missile.js"></script>
+<script type="text/javascript" src="js/explosion.js"></script>
+<script type="text/javascript" src="js/arena.js"></script>
+<script type="text/javascript" src="js/game.js"></script>
+<script type="text/javascript" src="js/userland.js"></script>
+</head>
+<body>
+<p style="float:right;"><a href="index.html" xml:lang="en">English</a><a href="info.html" style="margin-left:2em;">ヘルプ(英)</a></p><h1>JSロボッツ</h1>
+<noscript><p>JavaScript が必要です。</p></noscript>
+<div style="float:left; width:600px;">
+	<h2>アリーナ</h2>
+	<div id="arena" style="background-color:#CCCCCC; width:500px; height:500px;"></div>
+	<button type="button" onclick="playButton();" title="(再)起動"><img src="img/control_play_blue.png" alt="(再)起動"/></button>
+	<button type="button" onclick="stopButton();" title="止める"><img src="img/control_stop_blue.png" alt="止める"/></button>
+	<!--
+	<button type="button" onclick="pauseButton();" title="Pause/unpause"><img src="img/control_pause_blue.png" alt="Pause/unpause"/></button>
+	-->
+</div>
+<div style="float:left; width:300px; margin-left:2em;">
+	<table>
+		<thead>
+			<tr><th>プレーヤー</th><th>CPU</th></tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>
+					<table>
+						<thead><tr><th colspan="2">1</th></tr></thead>
+						<tbody>
+							<tr><td>ダメージ</td><td id="player_1_damage" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スピード</td><td id="player_1_speed" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>軸受け</td><td id="player_1_heading" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スキャン</td><td id="player_1_scan" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+						</tbody>
+					</table>
+				</td>
+				<td>
+					<table>
+						<thead><tr><th colspan="2">1</th></tr></thead>
+						<tbody>
+							<tr><td>ダメージ</td><td id="cpu_1_damage" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スピード</td><td id="cpu_1_speed" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>軸受け</td><td id="cpu_1_heading" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スキャン</td><td id="cpu_1_scan" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<table>
+						<thead><tr><th colspan="2">2</th></tr></thead>
+						<tbody>
+							<tr><td>ダメージ</td><td id="player_2_damage" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スピード</td><td id="player_2_speed" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>軸受け</td><td id="player_2_heading" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スキャン</td><td id="player_2_scan" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+						</tbody>
+					</table>
+				</td>
+				<td>
+					<table>
+						<thead><tr><th colspan="2">2</th></tr></thead>
+						<tbody>
+							<tr><td>ダメージ</td><td id="cpu_2_damage" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スピード</td><td id="cpu_2_speed" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>軸受け</td><td id="cpu_2_heading" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スキャン</td><td id="cpu_2_scan" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<table>
+						<thead><tr><th colspan="2">3</th></tr></thead>
+						<tbody>
+							<tr><td>ダメージ</td><td id="player_3_damage" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スピード</td><td id="player_3_speed" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>軸受け</td><td id="player_3_heading" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スキャン</td><td id="player_3_scan" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+						</tbody>
+					</table>
+				</td>
+				<td>
+					<table>
+						<thead><tr><th colspan="2">3</th></tr></thead>
+						<tbody>
+							<tr><td>ダメージ</td><td id="cpu_3_damage" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スピード</td><td id="cpu_3_speed" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>軸受け</td><td id="cpu_3_heading" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スキャン</td><td id="cpu_3_scan" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<table>
+						<thead><tr><th colspan="2">4</th></tr></thead>
+						<tbody>
+							<tr><td>ダメージ</td><td id="player_4_damage" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スピード</td><td id="player_4_speed" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>軸受け</td><td id="player_4_heading" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スキャン</td><td id="player_4_scan" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+						</tbody>
+					</table>
+				</td>
+				<td>
+					<table>
+						<thead><tr><th colspan="2">4</th></tr></thead>
+						<tbody>
+							<tr><td>ダメージ</td><td id="cpu_4_damage" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スピード</td><td id="cpu_4_speed" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>軸受け</td><td id="cpu_4_heading" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+							<tr><td>スキャン</td><td id="cpu_4_scan" style="width:3em;">&nbsp;&nbsp;&nbsp;</td></tr>
+						</tbody>
+					</table>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+<h2 style="clear:both;">CPU</h2>
+<div style="width:20%; float:left; padding:1%; border:1px solid #CCCCCC; margin-right:1%;">
+	1
+	<input type="checkbox" id="cpu_1_on" checked="checked"/>
+	色
+	<select id="cpu_1_color"><option value="aqua" >水色</option><option value="black" >黒</option><option value="blue" selected="selected">青</option><option value="fuchsia" >ピンク</option><option value="gray" >灰色</option><option value="green" >緑</option><option value="lime" >ライム</option><option value="maroon" >ワインレッド</option><option value="navy" >ネイビー</option><option value="olive" >オリブ</option><option value="purple" >紫</option><option value="red" >赤</option><option value="silver" >シルバー</option><option value="teal" >ターコイズ</option><option value="white" >白</option><option value="yellow" >黄色</option></select>	
+	<br/>
+	<select id="cpu_1_program" ><optgroup label="矢倉"><option value="normal_tower">普通の矢倉</option><option value="defensive_tower">防衛的な矢倉</option><option value="aggressive_tower">攻撃的な矢倉</option></optgroup><optgroup label="狙撃兵"><option value="camping_sniper">隠れる狙撃兵</option><option value="hunting_sniper">追跡する狙撃兵</option></optgroup><optgroup label="警備隊"><option value="perimeter_guard">周辺警備隊</option><option value="radius_guard">半径警備隊</option></optgroup><optgroup label="その他"><option value="mosquito">蚊</option></optgroup></select>
+</div>
+<div style="width:20%; float:left; padding:1%; border:1px solid #CCCCCC; margin-right:1%;">
+	2
+	<input type="checkbox" id="cpu_2_on"/>
+	色
+	<select id="cpu_2_color"><option value="aqua" >水色</option><option value="black" >黒</option><option value="blue" >青</option><option value="fuchsia" >ピンク</option><option value="gray" >灰色</option><option value="green" selected="selected">緑</option><option value="lime" >ライム</option><option value="maroon" >ワインレッド</option><option value="navy" >ネイビー</option><option value="olive" >オリブ</option><option value="purple" >紫</option><option value="red" >赤</option><option value="silver" >シルバー</option><option value="teal" >ターコイズ</option><option value="white" >白</option><option value="yellow" >黄色</option></select>	
+	<br/>
+	<select id="cpu_2_program" ><optgroup label="矢倉"><option value="normal_tower">普通の矢倉</option><option value="defensive_tower">防衛的な矢倉</option><option value="aggressive_tower">攻撃的な矢倉</option></optgroup><optgroup label="狙撃兵"><option value="camping_sniper">隠れる狙撃兵</option><option value="hunting_sniper">追跡する狙撃兵</option></optgroup><optgroup label="警備隊"><option value="perimeter_guard">周辺警備隊</option><option value="radius_guard">半径警備隊</option></optgroup><optgroup label="その他"><option value="mosquito">蚊</option></optgroup></select>
+</div>
+<div style="width:20%; float:left; padding:1%; border:1px solid #CCCCCC; margin-right:1%;">
+	3
+	<input type="checkbox" id="cpu_3_on"/>
+	色
+	<select id="cpu_3_color"><option value="aqua" >水色</option><option value="black" >黒</option><option value="blue" >青</option><option value="fuchsia" >ピンク</option><option value="gray" >灰色</option><option value="green" >緑</option><option value="lime" >ライム</option><option value="maroon" selected="selected">ワインレッド</option><option value="navy" >ネイビー</option><option value="olive" >オリブ</option><option value="purple" >紫</option><option value="red" >赤</option><option value="silver" >シルバー</option><option value="teal" >ターコイズ</option><option value="white" >白</option><option value="yellow" >黄色</option></select>	
+	<br/>
+	<select id="cpu_3_program" ><optgroup label="矢倉"><option value="normal_tower">普通の矢倉</option><option value="defensive_tower">防衛的な矢倉</option><option value="aggressive_tower">攻撃的な矢倉</option></optgroup><optgroup label="狙撃兵"><option value="camping_sniper">隠れる狙撃兵</option><option value="hunting_sniper">追跡する狙撃兵</option></optgroup><optgroup label="警備隊"><option value="perimeter_guard">周辺警備隊</option><option value="radius_guard">半径警備隊</option></optgroup><optgroup label="その他"><option value="mosquito">蚊</option></optgroup></select>
+</div>
+<div style="width:20%; float:left; padding:1%; border:1px solid #CCCCCC; margin-right:1%;">
+	4
+	<input type="checkbox" id="cpu_4_on"/>
+	色
+	<select id="cpu_4_color"><option value="aqua" >水色</option><option value="black" >黒</option><option value="blue" >青</option><option value="fuchsia" >ピンク</option><option value="gray" >灰色</option><option value="green" >緑</option><option value="lime" >ライム</option><option value="maroon" >ワインレッド</option><option value="navy" >ネイビー</option><option value="olive" >オリブ</option><option value="purple" selected="selected">紫</option><option value="red" >赤</option><option value="silver" >シルバー</option><option value="teal" >ターコイズ</option><option value="white" >白</option><option value="yellow" >黄色</option></select>	
+	<br/>
+	<select id="cpu_4_program" ><optgroup label="矢倉"><option value="normal_tower">普通の矢倉</option><option value="defensive_tower">防衛的な矢倉</option><option value="aggressive_tower">攻撃的な矢倉</option></optgroup><optgroup label="狙撃兵"><option value="camping_sniper">隠れる狙撃兵</option><option value="hunting_sniper">追跡する狙撃兵</option></optgroup><optgroup label="警備隊"><option value="perimeter_guard">周辺警備隊</option><option value="radius_guard">半径警備隊</option></optgroup><optgroup label="その他"><option value="mosquito">蚊</option></optgroup></select>
+</div>
+<h2 style="clear:both;">プレーヤー</h2>
+<div style="width:49%; float:left;">
+	<input type="checkbox" id="player_1_on" checked="checked"/>
+	1
+	ベース
+	<select id="player_1_program" onchange="setPlayer(1, this.value);"><option value="blank">空</option><optgroup label="矢倉"><option value="normal_tower">普通の矢倉</option><option value="defensive_tower">防衛的な矢倉</option><option value="aggressive_tower">攻撃的な矢倉</option></optgroup><optgroup label="狙撃兵"><option value="camping_sniper">隠れる狙撃兵</option><option value="hunting_sniper">追跡する狙撃兵</option></optgroup><optgroup label="警備隊"><option value="perimeter_guard">周辺警備隊</option><option value="radius_guard">半径警備隊</option></optgroup><optgroup label="その他"><option value="mosquito">蚊</option></optgroup></select>
+	色
+	<select id="player_1_color"><option value="aqua" selected="selected">水色</option><option value="black" >黒</option><option value="blue" >青</option><option value="fuchsia" >ピンク</option><option value="gray" >灰色</option><option value="green" >緑</option><option value="lime" >ライム</option><option value="maroon" >ワインレッド</option><option value="navy" >ネイビー</option><option value="olive" >オリブ</option><option value="purple" >紫</option><option value="red" >赤</option><option value="silver" >シルバー</option><option value="teal" >ターコイズ</option><option value="white" >白</option><option value="yellow" >黄色</option></select>
+	<textarea id="player_1_program_source" style="width:98%;" rows="25" cols="60"></textarea>
+	<script type="text/javascript">
+		document.getElementById('player_1_program_source').onkeydown = catchTab;
+	</script>
+</div>
+<div style="width:49%; float:left;">
+	<input type="checkbox" id="player_2_on"/>
+	2
+	ベース
+	<select id="player_2_program" onchange="setPlayer(2, this.value);"><option value="blank">空</option><optgroup label="矢倉"><option value="normal_tower">普通の矢倉</option><option value="defensive_tower">防衛的な矢倉</option><option value="aggressive_tower">攻撃的な矢倉</option></optgroup><optgroup label="狙撃兵"><option value="camping_sniper">隠れる狙撃兵</option><option value="hunting_sniper">追跡する狙撃兵</option></optgroup><optgroup label="警備隊"><option value="perimeter_guard">周辺警備隊</option><option value="radius_guard">半径警備隊</option></optgroup><optgroup label="その他"><option value="mosquito">蚊</option></optgroup></select>
+	色
+	<select id="player_2_color"><option value="aqua" >水色</option><option value="black" >黒</option><option value="blue" >青</option><option value="fuchsia" >ピンク</option><option value="gray" >灰色</option><option value="green" >緑</option><option value="lime" selected="selected">ライム</option><option value="maroon" >ワインレッド</option><option value="navy" >ネイビー</option><option value="olive" >オリブ</option><option value="purple" >紫</option><option value="red" >赤</option><option value="silver" >シルバー</option><option value="teal" >ターコイズ</option><option value="white" >白</option><option value="yellow" >黄色</option></select>
+	<textarea id="player_2_program_source" style="width:98%;" rows="25" cols="60"></textarea>
+	<script type="text/javascript">
+		document.getElementById('player_2_program_source').onkeydown = catchTab;
+	</script>
+</div>
+<div style="width:49%; float:left; clear:both;">
+	<input type="checkbox" id="player_3_on"/>
+	3
+	ベース
+	<select id="player_3_program" onchange="setPlayer(3, this.value);"><option value="blank">空</option><optgroup label="矢倉"><option value="normal_tower">普通の矢倉</option><option value="defensive_tower">防衛的な矢倉</option><option value="aggressive_tower">攻撃的な矢倉</option></optgroup><optgroup label="狙撃兵"><option value="camping_sniper">隠れる狙撃兵</option><option value="hunting_sniper">追跡する狙撃兵</option></optgroup><optgroup label="警備隊"><option value="perimeter_guard">周辺警備隊</option><option value="radius_guard">半径警備隊</option></optgroup><optgroup label="その他"><option value="mosquito">蚊</option></optgroup></select>
+	色
+	<select id="player_3_color"><option value="aqua" >水色</option><option value="black" >黒</option><option value="blue" >青</option><option value="fuchsia" >ピンク</option><option value="gray" >灰色</option><option value="green" >緑</option><option value="lime" >ライム</option><option value="maroon" >ワインレッド</option><option value="navy" >ネイビー</option><option value="olive" >オリブ</option><option value="purple" >紫</option><option value="red" selected="selected">赤</option><option value="silver" >シルバー</option><option value="teal" >ターコイズ</option><option value="white" >白</option><option value="yellow" >黄色</option></select>
+	<textarea id="player_3_program_source" style="width:98%;" rows="25" cols="60"></textarea>
+	<script type="text/javascript">
+		document.getElementById('player_3_program_source').onkeydown = catchTab;
+	</script>
+</div>
+<div style="width:49%; float:left;">
+	<input type="checkbox" id="player_4_on"/>
+	4
+	ベース
+	<select id="player_4_program" onchange="setPlayer(4, this.value);"><option value="blank">空</option><optgroup label="矢倉"><option value="normal_tower">普通の矢倉</option><option value="defensive_tower">防衛的な矢倉</option><option value="aggressive_tower">攻撃的な矢倉</option></optgroup><optgroup label="狙撃兵"><option value="camping_sniper">隠れる狙撃兵</option><option value="hunting_sniper">追跡する狙撃兵</option></optgroup><optgroup label="警備隊"><option value="perimeter_guard">周辺警備隊</option><option value="radius_guard">半径警備隊</option></optgroup><optgroup label="その他"><option value="mosquito">蚊</option></optgroup></select>
+	色
+	<select id="player_4_color"><option value="aqua" >水色</option><option value="black" >黒</option><option value="blue" >青</option><option value="fuchsia" selected="selected">ピンク</option><option value="gray" >灰色</option><option value="green" >緑</option><option value="lime" >ライム</option><option value="maroon" >ワインレッド</option><option value="navy" >ネイビー</option><option value="olive" >オリブ</option><option value="purple" >紫</option><option value="red" >赤</option><option value="silver" >シルバー</option><option value="teal" >ターコイズ</option><option value="white" >白</option><option value="yellow" >黄色</option></select>
+	<textarea id="player_4_program_source" style="width:98%;" rows="25" cols="60"></textarea>
+	<script type="text/javascript">
+		document.getElementById('player_4_program_source').onkeydown = catchTab;
+	</script>
+</div>
+		
+<!--presets go here-->
+<!--any good ways to, locally, load these in from the js/robots/* files??-->
+<div style="display:none;">
+	<textarea id="blank" rows="25" cols="60"></textarea>
+	<textarea id="normal_tower" rows="25" cols="60">//NORMAL TOWER
+//
+//Scan constantly and shoot at most recently found target
+//
+
+if(!this.scanAngle)	//One-off initialisation
+{
+	this.scanAngle = rand(360);
+	this.currentTargetAngle = 0;
+	this.currentTargetRange = 0;
+	this.gotFirstTarget = false;
+}
+
+var range = this.scan(this.scanAngle, 5);
+
+if(range)	//Update shooting angle if new target found
+{
+	this.gotFirstTarget = true;
+	this.currentTargetAngle = this.scanAngle;
+	this.currentTargetRange = range;
+}
+
+//Fire at current angle and range
+if(this.gotFirstTarget)
+{
+	this.cannon(this.currentTargetAngle, this.currentTargetRange);
+}
+
+this.scanAngle += 10;</textarea>
+	<textarea id="defensive_tower" rows="25" cols="60">//DEFENSIVE TOWER
+//
+//Scan constantly and shoot at most recently found target
+//IF we have taken damage
+//
+
+if(!this.scanAngle)	//One-off initialisation
+{
+	this.scanAngle = rand(360);
+	this.currentTargetAngle = 0;
+	this.currentTargetRange = 0;
+	this.gotFirstTarget = false;
+	this.currentDamage = 0;
+}
+
+var range = this.scan(this.scanAngle, 5);
+
+if(range)	//Update shooting angle if new target found
+{
+	this.gotFirstTarget = true;
+	this.currentTargetAngle = this.scanAngle;
+	this.currentTargetRange = range;
+}
+
+//Fire at current angle and range IF we've taken a hit
+if(this.gotFirstTarget && (this.damage() != this.currentDamage))
+{
+	this.cannon(this.currentTargetAngle, this.currentTargetRange);
+}
+
+this.scanAngle += 10;
+this.currentDamage = this.damage();</textarea>
+	<textarea id="aggressive_tower" rows="25" cols="60">//AGGRESSIVE TOWER
+//
+//Scan constantly and shoot at target if found
+//ELSE lob a random missile for the sake of it!
+//
+
+if(!this.scanAngle)	//One-off initialisation
+{
+	this.scanAngle = rand(360);
+}
+
+var range = this.scan(this.scanAngle, 10);
+
+if(range)
+{
+	this.cannon(this.scanAngle, range);
+}
+
+//Go wild!
+else
+{
+	//Add 50 so we don't hit ourself!
+	this.cannon(rand(360), rand(300) + 50);
+}
+
+this.scanAngle += 20;</textarea>
+	<textarea id="camping_sniper" rows="25" cols="60">//CAMPING SNIPER
+//
+//Hide in a random corner for easier scanning
+//
+//
+
+//Helper method
+this.closeToWall = function()
+{
+	var x = this.loc_x();
+	var y = this.loc_y();
+
+	if(x < 10 || x > 490)
+	{
+		return true;
+	}
+
+	if(y < 10 || y > 490)
+	{
+		return true;
+	}
+
+	return false;
+};
+
+this.getRandomCorner = function()
+{
+	var decider = rand(1000);
+	
+	var x = 499;
+	if(decider < 500)
+	{
+		x = 0;
+	}
+	
+	decider = rand(1000);
+	
+	var y = 499;
+	if(decider < 500)
+	{
+		y = 0;
+	}
+	
+	return {x:x, y:y};	//Object literal
+};
+
+this.getScanAnglesForCorner = function(corner)
+{
+	if(corner.x == 0 && corner.y == 0)
+	{
+		return {min:90, max:180};
+	}
+	
+	if(corner.x == 499 && corner.y == 0)
+	{
+		return {min:180, max:270};
+	}
+	
+	if(corner.x == 499 && corner.y == 499)
+	{
+		return {min:270, max:359};
+	}
+	
+	if(corner.x == 0 && corner.y == 499)
+	{
+		return {min:0, max:90};
+	}
+};
+
+this.getHeadingToXY = function(x, y)
+{
+	var heading;
+	
+	var curx = this.loc_x();
+	var cury = this.loc_y();
+	
+	var dx = curx - x;
+	var dy = cury - y;
+	
+	//atan() only returns -90 to +90, so figure out how to use
+	//the atan() value
+	if(dx == 0)	//x is zero, we either move due north or south
+	{
+		if(y > cury)
+		{
+			heading = 180;	//South
+		}
+		
+		else
+		{
+			heading = 0;	//North
+		}
+	}
+	
+	else
+	{
+		if(y < cury)
+		{
+			if(x > curx)
+			{
+				heading = atan(dy / dx);	//NORTH EAST
+			}
+			
+			else
+			{
+				heading = 180 + atan(dy / dx);	//NORTH WEST
+			}
+        }
+        
+        else
+        {
+        	if(x > curx)
+        	{
+        		heading = 360 + atan(dy / dx);	//SOUTH EAST
+        	}
+        	
+        	else
+        	{
+        		heading = 180 + atan(dy / dx);	//SOUTH WEST
+        	}
+        }
+    }
+    
+    return heading;
+};
+
+//Init
+if(!this.corner)
+{
+	this.corner = this.getRandomCorner();
+	this.heading = this.getHeadingToXY(this.corner.x, this.corner.y);
+	
+	var scanAngles = this.getScanAnglesForCorner(this.corner);
+	this.scanMin = scanAngles.min;
+	this.scanMax = scanAngles.max;
+	
+	this.scanAngle = this.scanMin;
+	
+	this.currentDamage = 0;
+}
+
+//Almost in that corner? Then stop!
+if(this.closeToWall())
+{
+	this.drive(this.heading, 0);
+	
+	var range = this.scan(this.scanAngle, 5);
+	
+	if(range && range < 350)
+	{
+		this.cannon(this.scanAngle, range);
+	}
+	
+	this.scanAngle += 10;
+	
+	if(this.scanAngle > this.scanMax)
+	{
+		this.scanAngle = this.scanMin;
+	}
+}
+
+else
+{
+	this.drive(this.heading, 50);
+}
+
+//Change corner if got damage (from explosion or collision)
+if(this.currentDamage != this.damage())
+{
+	this.corner = this.getRandomCorner();
+	this.heading = this.getHeadingToXY(this.corner.x, this.corner.y);
+	this.drive(this.heading, 50);	//For quick getaway bug
+}
+
+this.currentDamage = this.damage();</textarea>
+	<textarea id="hunting_sniper" rows="25" cols="60">//HUNTING SNIPER
+//
+//Scans only if lost/no target.
+//Chases target and backs off if too close.
+//No collision detection to speak of.
+//Why not add some as a user exercise? ;-)
+//
+
+//Init
+if(!this.scanAngle)
+{
+	this.scanAngle = 0;
+}
+
+var range = this.scan(this.scanAngle, 5);
+
+//Have target
+if(range)
+{
+	this.cannon(this.scanAngle, range);
+	
+	if(range > 300)	//Move closer
+	{
+		this.drive(this.scanAngle, 75);
+	}
+	
+	else if(range < 200)	//Back off
+	{
+		this.drive(this.scanAngle, 0);
+		this.drive(this.scanAngle - 180, 100);
+	}
+}
+
+else	//Only change scanning angle if we've lost the target
+{
+	this.scanAngle += 10;
+}</textarea>
+	<textarea id="radius_guard" rows="25" cols="60">//RADIUS GUARD
+//
+//Walk around a circle protecting what's inside
+//the circle by shooting outwards if there's a target.
+//Change drive direction if hit a robot or wall
+//
+
+//Helper method
+this.closeToWall = function()
+{
+	var x = this.loc_x();
+	var y = this.loc_y();
+
+	if(x < 10 || x > 490)
+	{
+		return true;
+	}
+
+	if(y < 10 || y > 490)
+	{
+		return true;
+	}
+
+	return false;
+};
+
+//Init
+if(!this.walkAngle)
+{
+	this.walkAngle = 0;
+	this.angleInc = 3;
+	this.affector = 1;
+}
+
+//Scan current tangent (ie. drive angle minus 90) from centre of circle
+//[We need to *add* 90 when angleInc is negative (ie. moving anti-clockwise)]
+this.scanAngle = this.walkAngle + (90 * -this.affector);
+
+this.drive(this.walkAngle, 50);
+
+var range = this.scan(this.scanAngle, 10);
+
+//Have target
+if(range)
+{
+	this.cannon(this.scanAngle, range);
+}
+
+this.walkAngle += (this.angleInc * this.affector);
+
+if(this.speed() == 0 || this.closeToWall())	//Hit wall or robot
+{
+	//this.angleInc = -this.angleInc;
+	this.affector = -this.affector;
+	this.walkAngle -= 180;
+}
+
+if(this.speed() == 0)	//For quick getaway bug
+{
+	this.drive(this.walkAngle, 50);
+}</textarea>
+	<textarea id="perimeter_guard" rows="25" cols="60">//PERIMETER GUARD
+//
+//Walk back and forth across the same line
+//shooting anything more-or-less in front
+//and backtracking if hit another robots
+//
+
+//Helper method
+this.closeToWall = function()
+{
+	var x = this.loc_x();
+	var y = this.loc_y();
+
+	if(x < 10 || x > 490)
+	{
+		return true;
+	}
+
+	if(y < 10 || y > 490)
+	{
+		return true;
+	}
+
+	return false;
+};
+
+//Reverse driving angle by 180 degrees
+this.toggleAngle = function()
+{
+	if(this.currentAngle == this.startAngle)
+	{
+		this.currentAngle = this.returnAngle;
+	}
+	
+	else
+	{
+		this.currentAngle = this.startAngle;
+	}
+};
+
+//Init
+if(!this.startAngle)
+{
+	this.startAngle = rand(360);
+	this.returnAngle = this.startAngle - 180;
+	this.currentAngle = this.startAngle;
+}
+
+
+
+this.drive(this.currentAngle, 50);
+
+var range = this.scan(this.currentAngle, 10);
+
+//Have target
+if(range)
+{
+	this.cannon(this.currentAngle, range);
+}
+
+if(this.speed() == 0 || this.closeToWall())	//Hit wall or robot
+{
+	this.toggleAngle();
+}
+
+if(this.speed() == 0)	//For quick getaway bug
+{
+	this.drive(this.currentAngle, 50);
+}</textarea>
+	<textarea id="mosquito" rows="25" cols="60">//MOSQUITO
+//
+//A non-offensive robot that flies around randomly
+//like a lunatic
+//
+
+//Helper
+this.closeToCoord = function(coord)
+{
+	return (Math.abs(coord.x - this.loc_x()) < 20) && (Math.abs(coord.y - this.loc_y()) < 20);
+};
+
+this.getRandomCoord = function()
+{
+	return {x:rand(500), y:rand(500)};	//Object literal
+};
+
+this.getHeadingToXY = function(x, y)
+{
+	var heading;
+	
+	var curx = this.loc_x();
+	var cury = this.loc_y();
+	
+	var dx = curx - x;
+	var dy = cury - y;
+	
+	//atan() only returns -90 to +90, so figure out how to use
+	//the atan() value
+	if(dx == 0)	//x is zero, we either move due north or south
+	{
+		if(y > cury)
+		{
+			heading = 180;	//South
+		}
+		
+		else
+		{
+			heading = 0;	//North
+		}
+	}
+	
+	else
+	{
+		if(y < cury)
+		{
+			if(x > curx)
+			{
+				heading = atan(dy / dx);	//NORTH EAST
+			}
+			
+			else
+			{
+				heading = 180 + atan(dy / dx);	//NORTH WEST
+			}
+        }
+        
+        else
+        {
+        	if(x > curx)
+        	{
+        		heading = 360 + atan(dy / dx);	//SOUTH EAST
+        	}
+        	
+        	else
+        	{
+        		heading = 180 + atan(dy / dx);	//SOUTH WEST
+        	}
+        }
+    }
+    
+    return heading;
+};
+
+this.getCoordAndHeading = function()
+{
+	this.coord = this.getRandomCoord();
+	this.heading = this.getHeadingToXY(this.coord.x, this.coord.y);
+};
+
+//Init
+if(!this.coord)
+{
+	this.getCoordAndHeading();
+}
+
+this.drive(this.heading, 100);
+
+//Stop (and change coord) if close enough to desired coord
+//OR if we've hit another robot
+if(this.closeToCoord(this.coord) || this.speed() == 0)
+{
+	this.drive(this.heading, 0);	//Stop
+		
+	this.getCoordAndHeading();
+	this.drive(this.heading, 100);	//For quick getaway bug
+}</textarea>
+</div>
+	
+<!--this is for the log() function - quite useful!-->
+<!--	
+<br/>
+<br style="clear:both;"/>
+<div id="console" style="font-family:monospace; border:1px solid black; padding:0.5em; height:400px; overflow:auto;"></div>
+-->
+
+<div id="footer"><span style="float:right;">v1.0gh</span>Copyright &copy; 2009 ~ 2011 Warp Asylum Ltd (UK)</div>
+</body>
+</html>

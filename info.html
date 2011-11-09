@@ -1,0 +1,269 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Style-Type" content="text/css"/>
+<meta http-equiv="Content-Language" content="en"/>
+<meta http-equiv="imagetoolbar" content="no"/>
+<title>JS Robots</title>
+<link type="text/css" href="css/jsrobots.css" rel="stylesheet" media="all"/>
+</head>
+<body>
+<p style="float:right;"><a href="index.html">back to main</a></p><h1>JS Robots</h1>
+<h2>What is it?</h2>
+<p>It's a JavaScript <em>reimagining</em> of Tom Poindexter's seminal <a href="http://crobots.deepthought.it/html/manual.html" onclick="window.open(this.href); return false;">CROBOTS</a> game.
+You program a script to control a robot and then put your robot up to fight against other CPU or human controlled robots each with various scripts!</p>
+<h2>Main differences between JS Robots and original CROBOTS</h2>
+<p>Overview:</p>
+<ol>
+	<li>Arena size</li>
+	<li>Coordinate system</li>
+	<li>Compass system</li>
+	<li>Simple Boolean detection of "in explosion or not"</li>
+	<li>Uses floats internally (heading, speed, scan and damage are integer)</li>
+	<li>No virtual machine proper (ie. loops are out of the question!)</li>
+</ol>
+<p>Details:</p>
+<ol>
+	<li>The arena is a square of 500 units by 500 units</li>
+	<li>The top-left of the arena is (0,0). The bottom-right is (499,499).</li>
+	<li>The compass system is oriented so that due north (up) is 0 degrees, 90 is east,
+	180 is south, 270 is west. One degree west (left) of due north is 359.
+	<pre>
+	                         315    0    45
+	                             \  |  /
+	                              \ | /
+	                        270 --- x --- 90
+	                              / | \
+	                             /  |  \
+	                         225   180   135
+	</pre>
+	</li>
+	<li>There is no reduced damage for being further away from the centre of an explosion.
+	Rather it is 10 points damage if you are <em>anywhere</em> in the explosion.</li>
+	<li></li>
+	<li></li>
+</ol>
+
+<h2>Basic instructions</h2>
+<ul>
+	<li>You need at least two robots to battle (CPU and / or Player - it doesn't matter)</li>
+	<li>Tick the checkboxes to enable various robots</li>
+	<li>CPU robots must use one of the preset scripts</li>
+	<li>Players can create a script from scratch, use a preset or edit a preset</li>
+	<li>There is no proper timeslicing virtual machine, so don't use loops because you'll break it /
+be cheating ;-)</li>
+</ul>
+<h2>Robot script API</h2>
+<h3>Per robot methods</h3>
+<p>Need to prefix these with <em>this.</em></p>
+<ul>
+<li>
+	<strong>scan(degree, resolution)</strong>
+	<br/>
+	The scan() method scans for enemy robots at the specified degree and resolution.
+	scan() returns false if no robots are within the scan line
+	or a positive integer representing the distance to the <em>closest</em> robot.
+	Degree should be within the range 0-359, otherwise degree is forced into 0-359 by a modulo 360 operation, and made positive if necessary.
+	Resolution controls the scanner's sensing resolution, up to +/- 10 degrees.
+	<br/><br/>Examples:<br/>
+	<code style="white-space:pre;">
+var range = this.scan(45, 0);	//Scan the 45 degree line, with no variance
+var range = this.scan(365, 10);	//Scans the lines from 355 degs to 15 degs
+	</code>
+</li>
+<li>
+	<strong>cannon(degree, range)</strong>
+	<br/>
+	The cannon() method fires a missile heading in the specified range and direction.
+	cannon() returns true if a missile was fired, or false if the cannon is reloading.
+	Degree is forced into the range 0-359 as in scan().
+	Range can be 0-350, with greater ranges truncated to 350.
+	<br/><br/>Examples:<br/>
+	<code style="white-space:pre;">
+var degree = 45;	//Set a direction to test
+
+if((var range = this.scan(degree, 2)) != false)	//See if a target is there
+{
+	this.cannon(degree, range);	//Fire a missile
+}
+	</code>
+</li>
+<li>
+	<strong>drive(degree, speed)</strong>
+	<br/>
+	The drive() method activates the robot's drive mechanism, on the specified heading and speed.
+	Degree is forced into the range 0-359 as in scan().
+	Speed is expressed as a percent, with 100 as maximum.
+	A speed of 0 disengages the drive.
+	Changes in direction can be negotiated at speeds of less than 50 percent.
+	<br/><br/>Examples:<br/>
+	<code style="white-space:pre;">
+this.drive(0, 100);	//Head due north, at maximum speed
+this.drive(90, 0);	//Stop motion
+	</code>
+</li>
+<li>
+	<strong>damage()</strong>
+	<br/>
+	The damage() method returns the current amount of damage incurred.
+	damage() takes no arguments, and returns the integer percent of damage, 0-99.
+	(100 percent damage means the robot is completely disabled, thus no longer running!)
+	<br/><br/>Examples:<br/>
+	<code style="white-space:pre;">
+var d = this.damage();	//Save current state
+; ; ;				//Other instructions
+if(d != this.damage())	//Compare current state to prior state
+{
+	this.drive(90, 100);	//Robot has been hit, start moving
+	d = this.damage();	//Get current damage again
+}
+	</code> 
+</li>
+<li>
+	<strong>speed()</strong>
+	<br/>
+	The speed() method returns the current speed of the robot.
+	speed() takes no arguments, and returns the integer percent of speed, 0-100.
+	Note that speed() may not always be the same as the last drive(), because of acceleration and deacceleration.
+	<br/><br/>Examples:<br/>
+	<code style="white-space:pre;">
+this.drive(270, 100);	//Start drive, due west full speed
+; ; ;				//Other instructions
+if(this.speed() == 0)	//Check current speed
+{
+	this.drive(90, 20);	//Ran into the west wall, or another robot so backtrack east
+}
+	</code> 
+</li>
+<li>
+	<strong>loc_x() and loc_y()</strong>
+	<br/>
+	The loc_x() method returns the robot's current x axis location.
+	loc_x() takes no arguments, and returns an integer in the range 0-499.
+	The loc_y() method is similar to loc_x(), but returns the current y axis position.
+	<br/><br/>Examples:<br/>
+	<code style="white-space:pre;">
+if(this.loc_y() > 20)
+{
+	this.drive(0, 50);	//Start heading for north wall
+}
+
+else
+{
+	this.drive(0, 0);		//Stop drive
+}
+	</code>
+</li>
+</ul>
+<h3>Utility functions</h3>
+<ul>
+<li>
+	<strong>rand(limit)</strong>
+	<br/>
+	Returns a random integer between zero and limit (exclusive).
+</li>
+<li>
+	<strong>sqrt(number)</strong>
+	<br/>
+	Returns the square root of a number. Number is made positive if necessary.
+</li>
+<li>
+	<strong>sine(degree)</strong>
+	<br/>
+	Returns the trigometric sine of degree (degree being an integer from zero to 359).
+</li>
+<li>
+	<strong>cosine(degree)</strong>
+	<br/>
+	Returns the trigometric cosine of degree (degree being an integer from zero to 359).
+</li>
+<li>
+	<strong>tan(degree)</strong>
+	<br/>
+	Returns the trigometric tangent of degree (degree being an integer from zero to 359).
+</li>
+<li>
+	<strong>atan(ratio)</strong>
+	<br/>
+	Returns the integer degree value, between -90 and +90, of the ratio.
+</li>
+</ul>
+
+<h2>Damage table</h2>
+<p>Damage accumulates thusly:</p>
+
+<table>
+<thead>
+	<tr><th>Case</th><th>Damage</th></tr>
+</thead>
+<tbody>
+	<tr><td>Hit wall</td><td>2 (and speed down to zero)</td></tr>
+	<tr><td>Hit other robot</td><td>2 each (and speed down to zero)</td></tr>
+	<tr><td>Caught in explosion</td><td>10</td></tr>
+</tbody>
+</table>
+
+<h2>Usage notes</h2>
+
+<p>To remember things between iterations, save it to a member variable thusly:
+<code>this.somethingToRemember = whatever();</code></p>
+
+<p>Robot object methods are documented (above) and internal housekeeping methods / members
+are prefixed with a '_' [underscore]. Avoid these names in your scripts and you will be fine.</p>
+
+<p>In your robot script, any and all JavaScript functions / objects / methods are available.
+The static methods of the Math object might be especially useful.
+Take a look at the <a href="http://devguru.com/technologies/javascript/home.asp" onclick="window.open(this.href); return false;">JavaScript guide on DevGuru</a>.
+Be sure you don't, for example, alert() anything out though because it will end in tears!
+</p>
+
+<p>You can define a reusable method for your robot thusly:<br/>
+<code style="white-space:pre;">
+//Define
+this.reusableMethod = function(speed)
+{
+	this.whatever = something();
+	this.drive(90, speed);
+}<span style="background:#ffa;">;</span>
+
+this.scan(this.scanAngle, 5);	//Other stuff here
+
+//Use
+this.reusableMethod(100);
+</code>
+<br/>
+A semicolon after the method definition is required.
+</p>
+
+<h2>Bugs</h2>
+
+<p>There's a pretty irritating bug which we call the <em>quick getaway bug</em>.
+Basically, if your robot's speed is zero due to colliding with another robot, then
+you need to drive() away as soon as possible in the code rather than waiting for the next iteration.
+See the presets for examples.</p>
+
+<p>Possibly related to the above, there's also the <em>jitterbug bug</em>.
+A robot will <em>occasionally</em> jitter back and forth when in front of a wall or other robot.</p>
+
+<p><span style="text-decoration:line-through;">Another irritating bug is that starting the game again after a stop or game win <em>isn't</em> perfect unfortunately.
+Best to reload the URL</span> [fixed!]</p>
+
+<h2>Release history</h2>
+<table>
+<thead>
+	<tr><th>Version</th><th>Date</th><th>Notes</th></tr>
+</thead>
+<tbody>
+	<tr><td>1.0gh</td><td>9 November 2011</td><td>First GitHub open source version. As <a href="http://jsrobots.com">live JS Robots</a> but packaged to run
+		locally from File --> Open in the browser (ie. no backend technologies and no sending scores to Twitter)</td></tr>
+</tbody>
+</table>
+<br/>
+<h2>Licence</h2>
+<p style="font-variant: small-caps;">This JS Robots software source code is released under the terms of the BSD "New BSD License".
+	Please see the <em>LICENCE</em> text file in the root folder of the source code.</p>
+
+<div style="font-size:smaller; text-align:center; margin-top:1em;"><span style="float:right;">v1.0gh</span>Copyright &copy; 2009 ~ 2011 Warp Asylum Ltd (UK)</div>
+</body>
+</html>

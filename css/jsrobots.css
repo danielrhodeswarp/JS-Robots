@@ -1,0 +1,33 @@
+#footer
+{
+	text-align:center;
+	font-size:smaller;
+}
+
+table
+{
+	border-collapse:collapse;
+}
+
+table, thead, tbody, tfoot, tr, th, td
+{
+	border:1px solid #cccccc;
+}
+
+h1, h2, h3{margin-top:0;}
+
+h1
+{
+	font-size:1.3em;
+}
+
+h2
+{
+	font-size:1.1em;
+}
+
+li
+{
+	margin-top:0.5em;
+	margin-bottom:0.5em;
+}
