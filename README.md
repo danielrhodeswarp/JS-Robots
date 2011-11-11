@@ -13,6 +13,7 @@ I've packaged it to run locally from your browser's File --> Open or file:// in 
 * Graphical representation of the robots battling it out
 * Have fun creating a killer robot
 * Can learn rudimentary game logic / loops
+* 日本語版のユーザインタフェースもあります (also with Japanese UI)
 
 ## What's not?
 
